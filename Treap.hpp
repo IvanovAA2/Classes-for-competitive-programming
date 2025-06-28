@@ -1,71 +1,81 @@
 class Treap
 {
-	struct node // new argument
+	struct Node // new argument
 	{
-		node *l, *r;
-		ll key, priority, val;
+		Node *l, *r;
+		ll key, priority, value;
 		ll sum, kol = 1, add = 0, max;
 
-		node(ll key, ll val) : l(nullptr), r(nullptr),
-			key(key), val(val),
-			sum(val), max(val) {
-			static mt19937 g{ (unsigned int)time(0) };
+		Node(ll key, ll value) :
+			l(nullptr), r(nullptr),
+			key(key), value(value),
+			sum(value), max(value)
+		{
+			static mt19937 g(time(0));
 			priority = g();
 		}
 	} *treap = nullptr;
 
-	static void update(node* root) // new argument
+	static void update(Node *root) // new argument
 	{
-		root->sum = root->val;
+		root->sum = root->value;
 		root->kol = 1;
-		root->max = root->val;
+		root->max = root->value;
 
-		if (root->l) {
+		if (root->l)
+		{
 			root->sum += root->l->sum + root->l->kol * root->l->add;
 			root->kol += root->l->kol;
 			root->max = std::max(root->max, root->l->max + root->l->add);
 		}
-		if (root->r) {
+		if (root->r)
+		{
 			root->sum += root->r->sum + root->r->kol * root->r->add;
 			root->kol += root->r->kol;
 			root->max = std::max(root->max, root->r->max + root->r->add);
 		}
 	}
 
-	static void propagate(node* root) // new argument
+	static void propagate(Node *root) // new argument
 	{
-		if (!root or !root->add) {
+		if (not root or root->add == 0)
+		{
 			return;
 		}
 
-		if (root->l) {
+		if (root->l)
+		{
 			root->l->add += root->add;
 		}
-		if (root->r) {
+		if (root->r)
+		{
 			root->r->add += root->add;
 		}
 
 		root->sum += root->add * root->kol;
-		root->val += root->add;
+		root->value += root->add;
 		root->max += root->add;
 		root->add = 0;
 	}
 
-	static pair<node*, node*> split(node* root, ll key)
+	static pair<Node*, Node*> split(Node *root, ll key)
 	{
 		propagate(root);
-		if (!root) {
+		if (not root)
+		{
 			return { 0, 0 };
 		}
 
-		if (root->key < key) {
+		if (root->key < key)
+		{
 			auto [l, r] = split(root->r, key);
 			root->r = l;
 			update(root);
 
 			return { root, r };
 		}
-		else {
+		else
+		{
 			auto [l, r] = split(root->l, key);
 			root->l = r;
 			update(root);
@@ -74,24 +84,24 @@ class Treap
 		}
 	}
 
-	static node* merge(node* a, node* b)
+	static Node* merge(Node *a, Node *b)
 	{
 		propagate(a);
 		propagate(b);
-		if (!a) {
-			return b;
-		}
-		if (!b) {
-			return a;
+		if (not a or not b)
+		{
+			return a ? a : b;
 		}
 
-		if (a->priority > b->priority) {
+		if (a->priority > b->priority)
+		{
 			a->r = merge(a->r, b);
 			update(a);
 
 			return a;
 		}
-		else {
+		else
+		{
 			b->l = merge(a, b->l);
 			update(b);
 
@@ -99,14 +109,17 @@ class Treap
 		}
 	}
 
-	static node* merge(node* l, node* m, node* r) {
+	static Node *merge(Node *l, Node *m, Node *r)
+	{
 		return merge(l, merge(m, r));
 	}
 
-	static node* min_node(node* cur)
+	static Node* min_node(Node *cur)
 	{
-		if (cur) {
-			while (cur->l) {
+		if (cur)
+		{
+			while (cur->l)
+			{
 				cur = cur->l;
 			}
 		}
@@ -114,10 +127,12 @@ class Treap
 		return cur;
 	}
 
-	static node* max_node(node* cur)
+	static Node* max_node(Node *cur)
 	{
-		if (cur) {
-			while (cur->r) {
+		if (cur)
+		{
+			while (cur->r)
+			{
 				cur = cur->r;
 			}
 		}
@@ -125,18 +140,18 @@ class Treap
 		return cur;
 	}
 
-	static ll amount(node* cur)
+	static ll amount(Node *cur)
 	{
-		if (!cur) {
+		if (not cur)
+		{
 			return 0;
 		}
 
 		update(cur);
-
 		return cur->kol;
 	}
 
-	tuple<node*, node*, node*> split(ll l, ll r) // [l, r)
+	tuple<Node*, Node*, Node*> split(ll l, ll r) // [l, r)
 	{
 		auto [less, right] = split(treap, l);
 		auto [middle, greater] = split(right, r);
@@ -144,14 +159,15 @@ class Treap
 		return { less, middle, greater };
 	}
 
-	static void rek_output(map<ll, ll>& mp, node* root)
+	static void rek_output(map<ll, ll>& mp, Node *root)
 	{
-		if (!root) {
+		if (not root)
+		{
 			return;
 		}
 
 		rek_output(mp, root->l);
-		mp[root->key] = root->val;
+		mp[root->key] = root->value;
 		rek_output(mp, root->r);
 	}
 
@@ -160,33 +176,36 @@ public:
 
 	Treap(ll n = 0, ll x = 0)
 	{
-		for (int i = 0; i < n; ++i) {
+		for (int i = 0; i < n; ++i)
+		{
 			insert(x, i);
 		}
 	}
 
-	void insert(ll val, ll key = ne)
+	void insert(ll value, ll key = ne)
 	{
-		if (key == ne) {
+		if (key == ne)
+		{
 			key = amount(treap);
 		}
-
-		if (!treap) {
-			treap = new node{ key, val };
+		if (not treap)
+		{
+			treap = new Node{ key, value };
 			return;
 		}
 
 		auto [less, x, greater] = split(key, key + 1);
 
 		delete_tree(x);
-		x = new node(key, val);
+		x = new Node(key, value);
 
 		treap = merge(less, x, greater);
 	}
 
 	bool erase(ll key)
 	{
-		if (!treap) {
+		if (not treap)
+		{
 			return false;
 		}
 
@@ -199,36 +218,36 @@ public:
 		return res;
 	}
 
-	static void delete_tree(node* tree)
+	static void delete_tree(Node *tree)
 	{
-		if (!tree) {
+		if (not tree)
+		{
 			return;
 		}
 
-		if (tree->l) {
+		if (tree->l)
+		{
 			delete_tree(tree->l);
 		}
-		if (tree->r) {
+		if (tree->r)
+		{
 			delete_tree(tree->r);
 		}
 
 		delete tree;
 	}
 
-	bool contains(ll key) {
-		node* cur = treap;
+	bool contains(ll key)
+	{
+		Node *cur = treap;
 
-		while (cur) {
-			if (cur->key == key) {
+		while (cur)
+		{
+			if (cur->key == key)
+			{
 				return true;
 			}
-
-			if (key < cur->key) {
-				cur = cur->l;
-			}
-			else {
-				cur = cur->r;
-			}
+			cur = key < cur->key ? cur->l : cur->r;
 		}
 
 		return false;
@@ -236,12 +255,8 @@ public:
 
 	ll sum(ll l, ll r) // [l, r)
 	{
-		ll res = 0;
-
 		auto [less, between, greater] = split(l, r);
-		if (between) {
-			res = between->sum + between->kol * between->add;
-		}
+		ll res = between ? between->sum + between->kol * between->add : 0;
 		treap = merge(less, between, greater);
 
 		return res;
@@ -250,7 +265,8 @@ public:
 	void add(ll l, ll r, ll x) // [l, r)
 	{
 		auto [less, between, greater] = split(l, r);
-		if (between) {
+		if (between)
+		{
 			between->add += x;
 		}
 		treap = merge(less, between, greater);
@@ -258,16 +274,14 @@ public:
 
 	ll gr_key(ll key)
 	{
-		if (!treap) {
+		if (not treap)
+		{
 			return ne;
 		}
-		ll ret = ne;
-
+		
 		auto [left, greater] = split(treap, key + 1);
-		node* res = min_node(greater);
-		if (res) {
-			ret = res->val;
-		}
+		Node *res = min_node(greater);
+		ll ret = res ? res->value : ne; 
 		treap = merge(left, greater);
 
 		return ret;
@@ -275,16 +289,14 @@ public:
 
 	ll gre_key(ll key)
 	{
-		if (!treap) {
+		if (not treap)
+		{
 			return ne;
 		}
-		ll ret = ne;
 
 		auto [less, right] = split(treap, key);
-		node* res = min_node(right);
-		if (res) {
-			ret = res->val;
-		}
+		Node *res = min_node(right);
+		ll ret = res ? res->value : ne; 
 		treap = merge(less, right);
 
 		return ret;
@@ -292,16 +304,14 @@ public:
 
 	ll ls_key(ll key)
 	{
-		if (!treap) {
+		if (not treap)
+		{
 			return ne;
 		}
-		ll ret = ne;
 
 		auto [less, right] = split(treap, key);
-		node* res = max_node(less);
-		if (res) {
-			ret = res->val;
-		}
+		Node *res = max_node(less);
+		ll ret = res ? res->value : ne; 
 		treap = merge(less, right);
 
 		return ret;
@@ -309,12 +319,8 @@ public:
 
 	ll max(ll l, ll r)
 	{
-		ll res = -2e18;
-
 		auto [less, between, greater] = split(l, r);
-		if (between) {
-			res = between->add + between->max;
-		}
+		ll res = between ? between->add + between->max : -2e18;
 		treap = merge(less, between, greater);
 
 		return res;
@@ -322,19 +328,16 @@ public:
 
 	ll at_key(ll key)
 	{
-		node* cur = treap;
+		Node *cur = treap;
 
-		while (cur) {
-			if (cur->key == key) {
-				return cur->val;
+		while (cur)
+		{
+			if (cur->key == key)
+			{
+				return cur->value;
 			}
 
-			if (key < cur->key) {
-				cur = cur->l;
-			}
-			else {
-				cur = cur->r;
-			}
+			cur = key < cur->key ? cur->l : cur = cur->r;
 		}
 
 		return ne;
@@ -342,18 +345,22 @@ public:
 
 	ll at_pos(ll pos)
 	{
-		node* cur = treap;
+		Node *cur = treap;
 
-		while (cur) {
+		while (cur)
+		{
 			ll amount_l = amount(cur->l);
-			if (amount_l == pos) {
-				return cur->val;
+			if (amount_l == pos)
+			{
+				return cur->value;
 			}
 
-			if (pos < amount_l) {
+			if (pos < amount_l)
+			{
 				cur = cur->l;
 			}
-			else {
+			else
+			{
 				pos -= amount_l + 1;
 				cur = cur->r;
 			}
@@ -362,7 +369,8 @@ public:
 		return ne;
 	}
 
-	ll size() {
+	ll size()
+	{
 		return amount(treap);
 	}
 
