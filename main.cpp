@@ -28,6 +28,7 @@
 #include <bitset>
 #include <ranges>
 #include <complex>
+#include <format>
 
 using namespace std;
 
@@ -37,7 +38,10 @@ using ld = long double;
 using pll = pair<ll, ll>;
 using pii = pair<int, int>;
 
-#include "Treap.hpp"
+constexpr auto nl = "\n";
+constexpr bool multitest = false;
+
+#include "BinaryIndexedTree(FenwickTree).hpp"
 
 void solve()
 {
@@ -49,7 +53,10 @@ int main()
     ios::sync_with_stdio(false), cin.tie(nullptr);
 
     int t = 1;
-    // cin >> t;
+    if (multitest)
+    {
+        cin >> t;
+    }
 
 
 
