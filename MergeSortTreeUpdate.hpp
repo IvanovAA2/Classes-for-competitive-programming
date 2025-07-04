@@ -1,10 +1,10 @@
-class MSTU
+class MergeSortTreeUpdate
 {
 private:
 	vector<multiset<ll>> t;
 	int p = 1;
 public:
-	MSTU (const vector<ll>& v)
+	MergeSortTreeUpdate (const vector<ll>& v)
 	{
 		int n = size(v);
 		while (p < n)
@@ -55,8 +55,7 @@ public:
 		}
 
 		int cm = (cl + cr) / 2;
-		return 
-			check(l, r, x, cl, cm, c * 2) or 
-			check(l, r, x, cm, cr, c * 2 + 1);
+		return check(l, r, x, cl, cm, c * 2)
+			or check(l, r, x, cm, cr, c * 2 + 1);
 	}
 };

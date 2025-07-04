@@ -41,11 +41,11 @@ using pii = pair<int, int>;
 constexpr auto nl = "\n";
 constexpr bool multitest = false;
 
-#include "BinaryIndexedTree(FenwickTree).hpp"
+#include "SegmentTree.hpp"
 
 void solve()
 {
-    
+    cout << (ll(1) << 63) << endl;
 }
 
 int main()
