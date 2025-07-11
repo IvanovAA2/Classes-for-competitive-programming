@@ -12,7 +12,7 @@ class LiChaoTree
 {
 	// границы запросов [l, r]
 	static const ll lb = 0;
-	static const ll rb = 1e6;
+	static const ll rb = 1e9;
 	
 	struct Node
 	{
