@@ -2,9 +2,8 @@ class FFT
 {
 private:
     using cmpl = complex<double>;
-    vector<cmpl> w;
 private:
-    void evaluate(vector<cmpl> &P) const
+    static void evaluate(vector<cmpl> &P, const vector<cmpl> &w)
     {
         const int n = size(P);
         if (n == 1)
@@ -20,8 +19,8 @@ private:
             P_odd[i] = P[i * 2 + 1];
         }
 
-        evaluate(P_even);
-        evaluate(P_odd);
+        evaluate(P_even, w);
+        evaluate(P_odd, w);
 
         const int step = size(w) / n;
         vector<cmpl> P_val(n);
@@ -31,7 +30,7 @@ private:
             P[i + n / 2] = P_even[i] - w[step * i] * P_odd[i];
         }
     }
-    void interpolate(vector<cmpl> &P) const
+    static void interpolate(vector<cmpl> &P, const vector<cmpl>& w)
     {
         const int n = size(P);
         if (n == 1)
@@ -48,8 +47,8 @@ private:
             P_odd[i] = (P[i] - P[i + n / 2]) / (cmpl(2) * w[step * i]);
         }
 
-        interpolate(P_even);
-        interpolate(P_odd);
+        interpolate(P_even, w);
+        interpolate(P_odd, w);
 
         for (int i = 0; i < n / 2; ++i)
         {
@@ -58,14 +57,14 @@ private:
         }
     }
 public:
-    vector<ll> multiply(const vector<ll> &P, const vector<ll> &Q)
+    static vector<ll> multiply(const vector<ll> &P, const vector<ll> &Q)
     {
         int n = bit_ceil(size(P) + size(Q) - 1);
 
         vector<cmpl> P_cmpl(n), Q_cmpl(n);
         copy(begin(P), end(P), begin(P_cmpl));
         copy(begin(Q), end(Q), begin(Q_cmpl));
-        w.resize(n);
+        vector<cmpl> w(n);
         w[0] = 1;
         if (n > 1)
         {
@@ -77,14 +76,14 @@ public:
             }
         }
 
-        evaluate(P_cmpl);
-        evaluate(Q_cmpl);
+        evaluate(P_cmpl, w);
+        evaluate(Q_cmpl, w);
         vector<cmpl> R_cmpl(n);
         for (int i = 0; i < n; ++i)
         {
             R_cmpl[i] = P_cmpl[i] * Q_cmpl[i];
         }
-        interpolate(R_cmpl);
+        interpolate(R_cmpl, w);
 
         n = size(P) + size(Q) - 1;
         vector<ll> R(n);
