@@ -1,92 +1,107 @@
+template<class T>
 class FFT
 {
 private:
     using cmpl = complex<double>;
+    static const double PI;
+    FFT() = delete;
 private:
-    static void evaluate(vector<cmpl> &P, const vector<cmpl> &w)
+    static void evaluate(vector<cmpl> &P)
     {
         const int n = size(P);
-        if (n == 1)
+
+        for (int i = 1, j = 0; i < n; ++i)
         {
-            return;
+            int bit = n >> 1;
+            while (bit & j)
+            {
+                j ^= bit;
+                bit >>= 1;
+            }
+            j ^= bit;
+
+            if (i < j)
+            {
+                swap(P[i], P[j]);
+            }
         }
 
-        vector<cmpl> P_even(n / 2);
-        vector<cmpl> P_odd(n / 2);
-        for (int i = 0; i < n / 2; ++i)
+        for (int d = 2; d <= n; d *= 2)
         {
-            P_even[i] = P[i * 2];
-            P_odd[i] = P[i * 2 + 1];
-        }
-
-        evaluate(P_even, w);
-        evaluate(P_odd, w);
-
-        const int step = size(w) / n;
-        vector<cmpl> P_val(n);
-        for (int i = 0; i < n / 2; ++i)
-        {
-            P[i] = P_even[i] + w[step * i] * P_odd[i];
-            P[i + n / 2] = P_even[i] - w[step * i] * P_odd[i];
+            const double angle = 2 * PI / d;
+            const cmpl step(cos(angle), sin(angle));
+            for (int i = 0; i < n; i += d)
+            {
+                cmpl w(1);
+                for (int j = 0; j < d / 2; ++j)
+                {
+                    cmpl even = P[i + j];
+                    cmpl odd  = P[i + d / 2 + j];
+                    P[i + j]         = even + w * odd;
+                    P[i + d / 2 + j] = even - w * odd;
+                    w *= step;
+                }
+            }
         }
     }
-    static void interpolate(vector<cmpl> &P, const vector<cmpl>& w)
+    static void interpolate(vector<cmpl> &P)
     {
         const int n = size(P);
-        if (n == 1)
+
+        for (int d = n; d >= 2; d /= 2)
         {
-            return;
+            const double angle = 2 * PI / d;
+            const cmpl step(cos(angle), sin(angle));
+            for (int i = 0; i < n; i += d)
+            {
+                cmpl w(1);
+                for (int j = 0; j < d / 2; ++j)
+                {
+                    cmpl pos = P[i + j];
+                    cmpl neg = P[i + d / 2 + j];
+                    P[i + j]         = (pos + neg) / (cmpl(2));
+                    P[i + d / 2 + j] = (pos - neg) / (cmpl(2) * w);
+                    w *= step;
+                }
+            }
         }
 
-        const int step = size(w) / n;
-        vector<cmpl> P_even(n / 2);
-        vector<cmpl> P_odd(n / 2);
-        for (int i = 0; i < n / 2; ++i)
+        for (int i = 1, j = 0; i < n; ++i)
         {
-            P_even[i] = (P[i] + P[i + n / 2]) / cmpl(2);
-            P_odd[i] = (P[i] - P[i + n / 2]) / (cmpl(2) * w[step * i]);
-        }
+            int bit = n >> 1;
+            while (bit & j)
+            {
+                j ^= bit;
+                bit >>= 1;
+            }
+            j ^= bit;
 
-        interpolate(P_even, w);
-        interpolate(P_odd, w);
-
-        for (int i = 0; i < n / 2; ++i)
-        {
-            P[i * 2] = P_even[i];
-            P[i * 2 + 1] = P_odd[i];
+            if (i < j)
+            {
+                swap(P[i], P[j]);
+            }
         }
     }
 public:
-    static vector<ll> multiply(const vector<ll> &P, const vector<ll> &Q)
+    static vector<T> multiply(const vector<T> &P, const vector<T> &Q)
     {
         int n = bit_ceil(size(P) + size(Q) - 1);
 
         vector<cmpl> P_cmpl(n), Q_cmpl(n);
         copy(begin(P), end(P), begin(P_cmpl));
         copy(begin(Q), end(Q), begin(Q_cmpl));
-        vector<cmpl> w(n);
-        w[0] = 1;
-        if (n > 1)
-        {
-            const double PI = acos(-1);
-            w[1] = cmpl(cos(2 * PI / n), sin(2 * PI / n));
-            for (int i = 2; i < n; ++i)
-            {
-                w[i] = w[i - 1] * w[1];
-            }
-        }
 
-        evaluate(P_cmpl, w);
-        evaluate(Q_cmpl, w);
+        evaluate(P_cmpl);
+        evaluate(Q_cmpl);
         vector<cmpl> R_cmpl(n);
         for (int i = 0; i < n; ++i)
         {
             R_cmpl[i] = P_cmpl[i] * Q_cmpl[i];
         }
-        interpolate(R_cmpl, w);
+        interpolate(R_cmpl);
 
         n = size(P) + size(Q) - 1;
-        vector<ll> R(n);
+        vector<T> R(n);
         for (int i = 0; i < n; ++i)
         {
             R[i] = round(R_cmpl[i].real());
@@ -94,3 +109,5 @@ public:
         return R;
     }
 };
+template<class T> 
+const double FFT<T>::PI = acos(-1);
