@@ -25,7 +25,7 @@ public:
 		rgraph[b].push_back(inv(a));
 		rgraph[a].push_back(inv(b));
 	}
-	pair<vector<bool>, bool> solve ()
+	optional<vector<bool>> solve ()
 	{
 		int sz = size(graph);
 		int n = sz / 2;
@@ -96,15 +96,15 @@ public:
 		{
 			if (c[get(i)] == c[inv(get(i))])
 			{
-				return {{}, false};
+				return nullopt;
 			}
 		}
- 
+
 		vector<bool> ans(n);
 		for (int i = 0; i < n; ++i)
 		{
 			ans[i] = c[get(i)] > c[inv(get(i))];
 		}
-		return {ans, true};
+		return ans;
 	}
 };

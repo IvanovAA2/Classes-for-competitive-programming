@@ -1,8 +1,23 @@
-vector<int> kuhn (const vector<vector<int>> &g, int m)
+vector<int> kuhn (const vector<vector<int>> &graph, int m)
 {
-	int n = size(g);
+	int n = size(graph), cnt = 0;
 	vector<int> r(m, -1);
-	vector<bool> used(n);
+	vector<bool> used(n), matched(n);
+
+	for (int i = 0; i < n; ++i)
+	{
+		for (int j : graph[i])
+		{
+			if (r[j] == -1)
+			{
+				r[j] = i;
+				matched[i] = true;
+				++cnt;
+				break;
+			}
+		}
+	}
+
 	function<bool(int)> dfs = [&](int cur) -> bool
 	{
 		if (used[cur])
@@ -11,7 +26,7 @@ vector<int> kuhn (const vector<vector<int>> &g, int m)
 		}
 		used[cur] = true;
 
-		for (int next : g[cur])
+		for (int next : graph[cur])
 		{
 			if (r[next] == -1 or dfs(r[next]))
 			{
@@ -25,8 +40,19 @@ vector<int> kuhn (const vector<vector<int>> &g, int m)
 
 	for (int i = 0; i < n; ++i)
 	{
-		fill(begin(used), end(used), false);
-		dfs(i);
+		if (matched[i] == false)
+		{
+			fill(begin(used), end(used), false);
+			if (dfs(i))
+			{
+				++cnt;
+				matched[i] = true;
+			}
+			if (cnt == min(n, m))
+			{
+				return r;
+			}
+		}
 	}
 
 	return r;
